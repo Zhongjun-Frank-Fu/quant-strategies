@@ -1,0 +1,79 @@
+@import "tailwindcss";
+
+/* ===== QuantLab Terminal Luxe Design System ===== */
+
+@theme {
+  /* Background */
+  --color-bg-primary: #0A0E17;
+  --color-bg-secondary: #0F131C;
+  --color-bg-card: #181B25;
+  --color-bg-elevated: #1C1F29;
+  --color-bg-hover: #262A34;
+  --color-bg-highest: #31353F;
+
+  /* Text */
+  --color-text-primary: #DFE2EF;
+  --color-text-secondary: #C2C6D6;
+  --color-text-tertiary: #8C909F;
+  --color-text-muted: #6B7280;
+
+  /* Accent */
+  --color-accent-blue: #3B82F6;
+  --color-accent-purple: #8B5CF6;
+  --color-accent-green: #10B981;
+  --color-accent-gold: #F59E0B;
+  --color-accent-red: #EF4444;
+  --color-accent-cyan: #06B6D4;
+  --color-accent-pink: #EC4899;
+
+  /* Signal */
+  --color-signal-positive: #4EDEA3;
+  --color-signal-negative: #FFB4AB;
+  --color-signal-warning: #F59E0B;
+
+  /* Border */
+  --color-border-subtle: rgba(255, 255, 255, 0.05);
+  --color-border-hover: rgba(59, 130, 246, 0.2);
+
+  /* Fonts */
+  --font-headline: 'Space Grotesk', system-ui, sans-serif;
+  --font-body: 'Inter', 'Noto Sans SC', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+}
+
+/* Global */
+body {
+  font-family: var(--font-body);
+  background-color: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Utilities */
+.tabular {
+  font-variant-numeric: tabular-nums;
+  font-family: var(--font-mono);
+}
+
+.glass {
+  background: rgba(15, 19, 28, 0.6);
+  backdrop-filter: blur(20px);
+}
+
+.hero-gradient {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(139, 92, 246, 0.03) 50%, rgba(10, 14, 23, 0) 100%);
+}
+
+.hide-scrollbar::-webkit-scrollbar { display: none; }
+.hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* KaTeX */
+.katex-display { margin: 0 !important; }
+.katex { font-size: 1.1em !important; }
+
+/* highlight.js override for dark theme */
+.hljs {
+  background: transparent !important;
+  padding: 0 !important;
+}
