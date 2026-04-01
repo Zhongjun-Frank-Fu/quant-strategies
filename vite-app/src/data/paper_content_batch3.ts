@@ -11,6 +11,7 @@ export const PAPER_CONTENT_BATCH3: Record<string, PaperDeepContent> = {
   // 32. LLM Alpha Mining (Kou 2024)
   // ============================================================
   'llm-alpha-kou2024': {
+    modelId: 'llm-alpha-kou2024',
     researchBackground: `传统量化因子挖掘依赖研究员手工构造因子公式，搜索空间有限且效率低下。随着大语言模型(LLM)在代码生成和逻辑推理方面的突破，研究者开始探索利用LLM自动化生成Alpha因子的可能性。Kou (2024)提出了一种LLM驱动的策略发现框架，通过精心设计的Prompt向LLM描述可用的数据字段(close、open、high、low、volume)和运算符(rank、ts_mean、ts_std、delay等)，引导模型生成具有预测能力的Alpha因子公式。生成的因子经由IC(信息系数)、IR(信息比率)和换手率等指标评估后，筛选出最优因子组合。该研究报告累计收益达到53.17%，展示了LLM在量化投资自动化方面的巨大潜力。核心挑战在于如何设计有效的Prompt模板、如何评估和筛选海量候选因子、以及如何避免过拟合。`,
 
     algorithmIntroduction: `LLM Alpha Mining框架包含五个核心模块。第一，Prompt设计模块——向LLM描述因子搜索空间，包括可用数据字段和算术/时序运算符，要求模型输出具备经济学直觉的因子公式。第二，因子生成模块——在本实现中采用模板因子库(16个因子模板，如momentum、mean_reversion、volume_surprise等)配合参数槽位模拟LLM输出，覆盖动量、均值回归、量价关系等多个维度。第三，因子评估管线——对每个候选因子计算滚动IC(因子值与未来5日收益率的Spearman相关系数)、IR(IC均值/IC标准差，衡量因子稳定性)、以及因子换手率(排名日间变化的绝对值均值，作为交易成本的代理指标)。第四，参数优化模块——采用爬山法(Hill Climbing)在Top-5因子的最优窗口参数附近搜索，通过微调窗口期(delta范围为-2到+5)进一步提升IC。第五，信号转化模块——将最佳因子值转为Z-score，当Z>0.5时做多，Z<-0.5时做空。整个管线的搜索空间为16个模板 x 6种窗口参数 = 96个候选因子，爬山优化将参数精度提升至单日分辨率。`,
@@ -86,6 +87,7 @@ export const PAPER_CONTENT_BATCH3: Record<string, PaperDeepContent> = {
   // 33. ChatGPT NLP + LSTM (Zhang 2023)
   // ============================================================
   'chatgpt-nlp-lstm-zhang2023': {
+    modelId: 'chatgpt-nlp-lstm-zhang2023',
     researchBackground: `自然语言处理(NLP)在金融领域的应用日益广泛，尤其是ChatGPT等大语言模型展现出强大的文本理解和情绪分析能力。Zhang (2023)提出将ChatGPT生成的NLP情绪因子与传统技术因子融合，输入LSTM深度学习模型进行股价预测。这一研究背景植根于两个关键观察：第一，市场价格不仅受技术面驱动，还受到新闻情绪、舆论风向等非结构化信息的显著影响；第二，LSTM网络的时序记忆能力使其特别适合捕捉因子序列中的时间依赖关系。传统多因子模型通常假设因子与收益率之间存在同期线性关系，而LSTM能够学习因子的滞后效应和非线性交互。本研究的核心创新在于将NLP情绪因子作为额外信息维度引入深度学习预测框架。`,
 
     algorithmIntroduction: `该策略的算法管线分为三个阶段。第一阶段是NLP情绪因子生成：真实场景下，ChatGPT对财经新闻文本进行Tokenize、Embedding和情感分析，输出[-1,1]范围的情绪得分。本实现使用模拟情绪因子(30%真实信号+70%随机噪声，经3日平滑并归一化)作为代理变量。第二阶段是多因子融合与序列构建：构建包含14个特征的因子矩阵——5/10/20日动量因子、5/10/20日波动率因子、RSI_14、MACD柱状图、布林带%B、5日成交量变化率、价格振幅，以及情绪因子本身和其3日/5日移动平均。使用StandardScaler标准化后，以30天滑动窗口构建LSTM输入序列(shape: [samples, 30, 14])。第三阶段是LSTM预测模型：采用2层LSTM结构(hidden_dim=64)配合Dropout(0.3)防止过拟合，全连接层输出次日涨跌概率。使用BCELoss和Adam优化器(lr=0.001)训练50个epoch，StepLR学习率调度器每20步衰减50%，梯度裁剪阈值为1.0。预测概率>0.5则做多，否则空仓。前70%数据用于训练，后30%用于测试和回测。`,
@@ -162,6 +164,7 @@ export const PAPER_CONTENT_BATCH3: Record<string, PaperDeepContent> = {
   // 34. LambdaMART (Zhang 2021)
   // ============================================================
   'lambdamart-zhang2021': {
+    modelId: 'lambdamart-zhang2021',
     researchBackground: `传统多因子选股模型将收益率预测视为回归问题(预测绝对收益率)或分类问题(预测涨跌方向)，但选股的本质是排序问题——投资者关心的是股票间的相对优劣而非绝对收益。Zhang (2021)将信息检索领域的排序学习(Learning to Rank, LTR)方法引入量化选股，使用LambdaMART算法直接优化股票排名质量。LambdaMART是LambdaRank与MART(Multiple Additive Regression Trees)的结合——通过Lambda梯度(结合pairwise排序损失和NDCG排名质量指标)引导梯度提升树的训练方向。相比回归方法，排序学习不需要精确预测收益率的绝对值，只需正确判断股票间的相对强弱关系，在选股场景下具有天然优势。`,
 
     algorithmIntroduction: `LambdaMART的核心创新在于将NDCG(Normalized Discounted Cumulative Gain)排名质量直接融入梯度提升树的训练目标。算法流程如下：首先在每个月度截面上，将20只股票按未来20日收益率排名分为5档(0-4)作为排序标签，构建包含动量、波动率、RSI、MACD、布林带、均线偏离、量价相关性等15个因子的特征矩阵。使用LightGBM的lambdarank目标函数(ndcg_eval_at=[5,10])训练排序模型——在训练过程中，Lambda梯度为每对股票(i,j)计算信息增益：lambda_{ij} = -sigma/(1+exp(sigma*(s_i-s_j))) * |delta_NDCG_{ij}|，其中delta_NDCG_{ij}是交换i、j排名位置后NDCG的变化量。这意味着模型重点优化对Top-K排名影响最大的股票对。训练参数为：num_leaves=31、learning_rate=0.05、feature_fraction=0.8、num_boost_round=200。使用12个月滚动训练窗口，每月预测下月截面排名，选择排名得分最高的Top-5股票等权配置。同时训练LightGBM回归模型(objective=regression)作为对照组。`,
@@ -232,6 +235,7 @@ export const PAPER_CONTENT_BATCH3: Record<string, PaperDeepContent> = {
   // 35. Cointegration + Kalman Filter (He 2023)
   // ============================================================
   'cointegration-kalman-he2023': {
+    modelId: 'cointegration-kalman-he2023',
     researchBackground: `统计套利是一种基于资产间统计关系偏离均衡后回归的量化策略。在A股市场中，同行业公司(如工商银行与建设银行)的股价序列往往存在长期均衡关系(协整关系)，当短期价差偏离均衡水平时，存在向均值回归的倾向。He (2023)提出了一个融合Engle-Granger协整检验、卡尔曼滤波动态对冲比率和Hurst指数均值回复确认的统计套利框架。传统配对交易使用固定的OLS对冲比率，但在长期内对冲关系可能缓慢漂移。卡尔曼滤波作为最优线性递归估计器，能实时追踪对冲比率的变化，生成更精确的动态价差。Hurst指数用于确认价差确实具有均值回复性质(H<0.5)，避免在价差呈随机游走或趋势性时盲目交易。该论文报告样本内胜率81%、最大回撤小于1%。`,
 
     algorithmIntroduction: `该策略的算法核心包含四个层次。第一层是协整检验：对工商银行(601398)和建设银行(601939)的收盘价序列进行Engle-Granger两步法协整检验——先用OLS回归估计静态对冲比率beta，再对残差序列进行ADF单位根检验。若p值<0.05，则确认两个价格序列存在协整关系。第二层是卡尔曼滤波动态对冲比率：以对冲比率beta_t为状态变量，建立随机游走状态方程(beta_t = beta_{t-1} + w_t, w_t~N(0,Q))和线性观测方程(P_A(t) = beta_t * P_B(t) + v_t, v_t~N(0,R))。通过预测-更新递推(卡尔曼增益K_t = P_{t|t-1}*P_B(t) / (P_B(t)^2*P_{t|t-1} + R))，实时估计最优对冲比率。参数设置为delta=1e-4(过程噪声)、R=0.001(观测噪声)。第三层是Hurst指数检验：使用R/S(Rescaled Range)方法计算价差的Hurst指数，H<0.5确认均值回复性、H>0.5表示趋势性。第四层是Z-score信号系统：使用60日滚动窗口计算动态价差的Z-score，|Z|>2时入场(做多或做空价差)、|Z|<0.5时平仓、|Z|>4时止损。`,
@@ -311,6 +315,7 @@ export const PAPER_CONTENT_BATCH3: Record<string, PaperDeepContent> = {
   // 36. ECM Pairs (Wang 2023)
   // ============================================================
   'ecm-pairs-wang2023': {
+    modelId: 'ecm-pairs-wang2023',
     researchBackground: `误差修正模型(Error Correction Model, ECM)是协整理论的自然延伸。传统协整配对交易仅利用长期均衡关系(协整残差的均值回复)，忽略了价差的短期动态调整过程。Wang (2023)基于Granger表示定理，将ECM引入配对交易信号系统——ECM不仅包含误差修正项(向长期均衡回归的力量)，还建模了价差的短期动态(滞后收益率变化的自回归结构)。这使得信号系统能预测价差的变化方向和幅度，而非仅依赖Z-score的统计极端性。论文报告Sharpe Ratio约1.5，通过ECM的方向性预测有效减少了假信号。`,
 
     algorithmIntroduction: `ECM配对交易策略在传统Z-score信号上叠加了方向性预测层。首先进行Engle-Granger协整回归，估计静态对冲比率beta和截距intercept，计算残差序列作为协整误差。然后构建ECM回归模型：Delta_PA(t) = alpha*e(t-1) + gamma*Delta_PA(t-1) + delta*Delta_PB(t-1) + epsilon_t。其中e(t-1)为滞后一期的协整残差，alpha为误差修正系数(预期为负值，表示向均衡回归)，gamma和delta为短期动态系数。使用sklearn的LinearRegression拟合ECM参数。信号策略结合Z-score和ECM预测：仅当Z-score处于极端值(|Z|>1.5)且ECM预测价差将收敛(预测方向与均值回归一致)时才入场。具体规则为：Z>1.5且ECM预测<0(价差偏高且预测将收缩)做空价差；Z<-1.5且ECM预测>0(价差偏低且预测将扩张)做多价差；|Z|<0.3平仓。同时运行纯Z-score策略(无ECM确认)作为对照。`,
@@ -380,6 +385,7 @@ export const PAPER_CONTENT_BATCH3: Record<string, PaperDeepContent> = {
   // 37. LSTM Arbitrage (Han 2024)
   // ============================================================
   'lstm-arbitrage-han2024': {
+    modelId: 'lstm-arbitrage-han2024',
     researchBackground: `传统统计套利的信号系统(Z-score阈值)本质上是线性规则——当价差超过固定标准差倍数时入场。但金融时间序列的均值回复动态往往是非线性的：回归速度取决于偏离程度、市场波动状态、资金流向等多种因素。Han (2024)提出使用LSTM神经网络预测价差的未来走势，将其作为配对交易的增强信号。LSTM的门控记忆机制使其能捕捉价差序列中的长短期依赖关系，学习到Z-score无法描述的非线性均值回复模式。论文报告年化收益率23%，LSTM预测方向确认有效减少了假突破交易。`,
 
     algorithmIntroduction: `LSTM增强配对交易的核心思路是用深度学习预测价差的未来变化方向，仅在LSTM确认价差将回归时入场。首先计算静态OLS对冲比率和价差序列，构建8维特征向量：价差原值、价差一阶差分、5日/20日移动平均、20日滚动标准差、Z-score、A/B股收益率。标签为下一日价差变化(spread_diff)。使用简化的numpy LSTM实现(而非PyTorch/TensorFlow)以减少依赖——LSTM单元包含遗忘门、输入门、细胞状态和输出门的完整结构，hidden_dim=32，通过线性输出层映射为标量预测。序列长度SEQ_LEN=20。训练使用简化的SGD(仅优化输出层权重，LSTM权重微小随机扰动)，20个epoch，batch_size=32。数据按7:3划分训练/测试集。交易信号结合Z-score和LSTM预测：Z>1.5且LSTM预测价差将减小(pred<0)时做空价差；Z<-1.5且LSTM预测价差将增大(pred>0)时做多价差；|Z|<0.3平仓。`,
@@ -445,6 +451,7 @@ export const PAPER_CONTENT_BATCH3: Record<string, PaperDeepContent> = {
   // 38. SVM Pairs (Yu 2022)
   // ============================================================
   'svm-pairs-yu2022': {
+    modelId: 'svm-pairs-yu2022',
     researchBackground: `配对交易中Z-score极端并不意味着价差一定会回归——协整关系可能在减弱、市场结构可能在变化。Yu (2022)提出使用SVM(支持向量机)分类器预测价差是否将收敛，作为入场前的"门控信号"。SVM在价差特征空间中构建非线性决策边界，将"即将收敛"和"继续发散"两种状态分离。使用RBF核函数捕捉特征间的非线性关系，概率输出(Platt Scaling)提供置信度信息用于仓位管理。论文报告分类准确率64%，SVM过滤约30-40%的假信号。`,
 
     algorithmIntroduction: `SVM增强配对交易策略的核心是在Z-score信号基础上增加机器学习分类层。首先计算OLS对冲比率、60日滚动Z-score和价差序列。然后构建9维SVM特征向量：Z-score、Z-score变化率(1日和5日)、Z-score平方、20日价差波动率、短期/长期波动率比(5日std/20日std)、价差RSI(14日)、A股和B股5日收益率。标签定义为：若未来5日Z-score绝对值小于当前Z-score绝对值(|Z_{t+5}|<|Z_t|)则为收敛(+1)，否则为发散(-1)。使用sklearn的SVC(kernel=rbf, probability=True)训练，通过网格搜索优化C=[0.1,1,10]和gamma=[0.01,0.1,1]。特征使用StandardScaler标准化。数据按7:3时间划分。交易规则：仅当|Z|>1.5且SVM收敛概率>55%时入场(做空或做多价差)。`,
@@ -511,6 +518,7 @@ export const PAPER_CONTENT_BATCH3: Record<string, PaperDeepContent> = {
   // 39. Improved Bollinger (Gong 2024)
   // ============================================================
   'improved-bollinger-gong2024': {
+    modelId: 'improved-bollinger-gong2024',
     researchBackground: `经典布林带策略使用SMA(简单移动平均)作为中轨、固定标准差倍数作为带宽，在趋势行情和震荡行情中使用相同的交易逻辑，适应性较差。Gong (2024)提出四项关键改进：EMA替代SMA提高对近期价格的敏感度、ATR替代标准差实现自适应带宽、ADX趋势过滤器区分趋势/震荡市场、MACD+CCI多重确认减少误判。这是一种纯规则策略(无机器学习)，通过多个技术指标的组合构建更稳健的交易系统。论文报告年化收益123.9%、夏普比率3.26，但这基于分钟线数据的高频交易。`,
 
     algorithmIntroduction: `改进布林带策略包含四层技术指标过滤。第一层是EMA中轨(span=20)——指数移动平均对近期价格赋予更高权重(权重按指数衰减)，比SMA更快响应趋势变化。第二层是ATR自适应带宽——Upper = EMA + 2.0*ATR(14)、Lower = EMA - 2.0*ATR(14)。ATR(Average True Range)在高波动期自动扩大带宽(减少假突破)、低波动期收窄带宽(增加信号灵敏度)，比固定标准差倍数更贴合市场节奏。第三层是ADX趋势过滤(14日)——ADX>25判定为趋势市场(执行趋势跟踪逻辑)、ADX<20判定为震荡市场(执行均值回归逻辑)。第四层是MACD柱状图+CCI(20日)多重确认。趋势模式下的买入条件：价格上穿上轨+MACD>0或价格在中轨上方+MACD金叉；卖出条件：价格下穿中轨或CCI<-100。震荡模式下的买入条件：价格触及下轨+CCI<-100(超卖反弹)；卖出条件：价格触及上轨+CCI>100。同时运行经典布林带(SMA+2倍标准差)作为对照。`,
@@ -580,6 +588,7 @@ export const PAPER_CONTENT_BATCH3: Record<string, PaperDeepContent> = {
   // 40. LEVER Online Learning (Yuan 2024)
   // ============================================================
   'lever-yuan2024': {
+    modelId: 'lever-yuan2024',
     researchBackground: `传统离线机器学习模型在训练完成后参数固定不变，当市场结构发生变化(regime switching)时模型预测能力可能急剧下降。Yuan (2024)提出LEVER在线自适应序列学习框架，模型在每个时间步接收新观测后立即更新预测参数，无需重新训练。这种"边走边学"的范式特别适合金融市场——市场的统计特征(均值、波动率、相关性)在不断变化，在线学习能快速适应这些变化。本实现使用递归最小二乘(RLS)算法作为在线学习器——RLS是卡尔曼滤波的一种特殊形式，具有O(d^2)的单步更新复杂度(d为特征维度)，适合实时交易场景。论文报告夏普比率提升+0.27。`,
 
     algorithmIntroduction: `LEVER框架的核心是递归最小二乘(RLS)在线学习算法。RLS维护一个权重向量w(维度与因子数相同)和协方差矩阵P(d x d)。每接收一个新观测(x_t, y_t)，执行三步更新：(1)计算卡尔曼增益K_t = P_{t-1}*x_t / (lambda + x_t^T*P_{t-1}*x_t)；(2)更新权重w_t = w_{t-1} + K_t*(y_t - x_t^T*w_{t-1})；(3)更新协方差P_t = (P_{t-1} - K_t*x_t^T*P_{t-1}) / lambda。其中lambda=0.99为遗忘因子——约等于对过去100天数据的指数加权平均(越近期权重越高)。输入因子包括5/10/20日动量、5/10日波动率、RSI、MACD柱状图、布林带%B、5日成交量变化率共11个特征。预测标签为下一日收益率。60天预热期后开始预测——预测值>0做多(signal=1)，否则空仓(signal=0)。同时运行120日滚动窗口的Ridge回归模型作为离线对照。每100步更新一次StandardScaler防止数值漂移。`,
@@ -649,6 +658,7 @@ export const PAPER_CONTENT_BATCH3: Record<string, PaperDeepContent> = {
   // 41. RL HFT Tuning (Zhang 2023)
   // ============================================================
   'rl-hft-tuning-zhang2023': {
+    modelId: 'rl-hft-tuning-zhang2023',
     researchBackground: `布林带等技术指标策略的参数(窗口期、标准差倍数)通常基于经验或历史优化固定设置，但最优参数随市场状态(高波动/低波动、趋势/震荡)而变化。Zhang (2023)提出使用强化学习(DQN)自动调整布林带策略参数——RL智能体根据当前市场状态(波动率、趋势强度、RSI等)选择最优的(窗口期,标准差倍数)组合，使策略能自适应不同市场环境。这种元学习(meta-learning)思路将参数调优本身视为一个序贯决策问题。论文报告平均利润23,347元。`,
 
     algorithmIntroduction: `DQN动态调参框架将布林带参数选择建模为马尔可夫决策过程(MDP)。状态空间s_t包含5维特征：20日波动率(vol_20*100)、20日动量方向(trend_20*100)、RSI(/100归一化)、当前布林带宽度(bb_width*100)和持仓状态(0或1)。动作空间包含20种离散参数组合：5种窗口期[10,15,20,25,30] x 4种标准差倍数[1.5,2.0,2.5,3.0]。奖励为策略收益减交易成本(r_t = return_t - cost_t)。每次动作持续5天(观测窗口)。DQN网络为3层全连接(5->64->64->20)，使用ReLU激活。训练参数：80个episode、batch_size=32、gamma=0.95(折扣因子)、epsilon从1.0衰减到0.05(epsilon-greedy探索)、学习率0.001(Adam)、目标网络每10个episode硬更新。经验回放缓冲区大小2000。回测时使用训练好的policy网络贪心选择动作(argmax Q值)，与固定参数(20,2.0)策略对比。`,
@@ -718,6 +728,7 @@ export const PAPER_CONTENT_BATCH3: Record<string, PaperDeepContent> = {
   // 42. HFT Infrastructure (Chen 2024)
   // ============================================================
   'hft-infra-chen2024': {
+    modelId: 'hft-infra-chen2024',
     researchBackground: `高频交易(HFT)系统的性能不仅取决于策略层面的Alpha信号质量，更取决于基础设施层面的延迟和吞吐量。Chen (2024)探讨了HFT系统的核心架构问题：限价订单簿(LOB)的数据结构设计、价格-时间优先级撮合规则的高效实现、端到端延迟的优化方案。在实际的高频交易竞争中，几微秒的延迟差异就可能决定盈亏。论文讨论的优化技术包括内核旁路(kernel bypass)网络栈、FPGA硬件加速、无锁数据结构和内存预分配等。本notebook实现了一个简化的Python版限价订单簿和撮合引擎，通过合成订单流进行性能基准测试。`,
 
     algorithmIntroduction: `限价订单簿撮合引擎的核心包含三个组件。第一是订单簿数据结构：使用Python的heapq实现双边价格优先队列——买单用最大堆(negate price)维护，确保最高买价优先成交；卖单用最小堆维护，确保最低卖价优先成交。相同价格的订单按时间戳排序(时间优先)。第二是撮合引擎(Price-Time Priority)：新订单到达时，检查对手方最优价格——如果买价>=卖价(可成交)，按maker价格(挂单方价格)撮合，部分成交后更新剩余量。第三是合成订单流生成：使用泊松过程模拟订单到达(lambda=100 orders/sec)，价格围绕中间价按指数分布偏移，15%的概率生成穿越spread的市价单(模拟激进交易者)，数量服从对数正态分布。性能指标包括：撮合延迟(微秒)、吞吐量(orders/sec)、成交率(trades/orders)、买卖价差(bid-ask spread)。`,
@@ -792,6 +803,7 @@ export const PAPER_CONTENT_BATCH3: Record<string, PaperDeepContent> = {
   // 43. Black-Litterman + Ledoit-Wolf (Zeng 2022)
   // ============================================================
   'bl-ledoit-wolf-zeng2022': {
+    modelId: 'bl-ledoit-wolf-zeng2022',
     researchBackground: `Markowitz均值-方差模型的两大痛点是：(1)对输入参数(尤其是期望收益率)极其敏感，微小的均值估计误差可能导致极端的权重配置；(2)样本协方差矩阵在资产数接近样本数时严重不稳定。Zeng (2022)研究了Black-Litterman模型与Ledoit-Wolf协方差收缩的结合——BL模型通过贝叶斯框架将市场均衡收益(CAPM隐含收益)与投资者主观观点融合，缓解了"均值估计垃圾进垃圾出"的问题；Ledoit-Wolf收缩将样本协方差矩阵向结构化目标(缩放单位矩阵)收缩，提供更稳定的协方差估计。论文报告年化收益约36.6%、信息比率(IR)2.05。`,
 
     algorithmIntroduction: `BL+Ledoit-Wolf模型的实现分为四个步骤。第一步，市场均衡隐含收益：Pi = delta * Sigma * w_mkt，其中delta=2.5为风险厌恶系数，Sigma为协方差矩阵，w_mkt为市场权重(本实现用等权近似)。这给出了在CAPM均衡假设下各资产的隐含超额收益。第二步，投资者主观观点：设定3个观点——(1)科技板块超额收益高于银行板块5%年化(相对观点)；(2)新能源板块绝对超额收益3%年化(绝对观点)；(3)地产板块绝对超额收益-3%年化。观点矩阵P(3xN)、观点收益向量Q(3x1)、观点不确定性矩阵Omega=diag(tau*P*Sigma*P^T)。第三步，BL后验收益：hat_mu = [(tau*Sigma)^{-1} + P^T*Omega^{-1}*P]^{-1} * [(tau*Sigma)^{-1}*Pi + P^T*Omega^{-1}*Q]。tau=0.05控制先验vs观点的权重平衡。第四步，Ledoit-Wolf协方差收缩+均值-方差优化：使用sklearn的LedoitWolf估计收缩协方差矩阵(自动选择最优收缩强度alpha)，以BL后验收益和收缩协方差为输入进行MV优化(SLSQP，单一资产上限40%)。使用8个行业ETF(银行、券商、医药、消费、科技、新能源、军工、地产)作为资产池，120日回看窗口、20日调仓频率。`,
@@ -865,6 +877,7 @@ export const PAPER_CONTENT_BATCH3: Record<string, PaperDeepContent> = {
   // 44. AC-CVaR (Ju 2022)
   // ============================================================
   'ac-cvar-ju2022': {
+    modelId: 'ac-cvar-ju2022',
     researchBackground: `传统Markowitz模型使用方差作为风险度量，隐含了收益率服从正态分布的假设。但A股市场收益率呈现显著的尖峰厚尾特征——极端下跌的频率和幅度远超正态分布预测。方差对上行和下行波动同等对待，而投资者通常更关心下行风险(尾部损失)。Ju (2022)研究了以CVaR(Conditional Value-at-Risk, 即Expected Shortfall)替代方差作为风险度量的组合优化模型(AC-CVaR)。CVaR是VaR之外的尾部平均损失——它不仅告诉你"最坏情况可能亏多少"(VaR)，还告诉你"如果真的出现最坏情况，平均会亏多少"(CVaR)。CVaR满足一致性风险度量(coherent risk measure)的四个公理，而VaR不满足次可加性。`,
 
     algorithmIntroduction: `AC-CVaR优化基于Rockafellar & Uryasev (2000)的线性化方法，将非线性的CVaR最小化问题转化为线性规划(LP)。决策变量为[w_1,...,w_N, zeta, u_1,...,u_T]——N个资产权重、1个辅助变量zeta(近似VaR)、T个辅助变量u_t(超出VaR的损失部分)。目标函数：min zeta + (1/(T*(1-alpha)))*sum(u_t)，其中alpha=0.95为置信水平。约束包括：u_t >= -w^T*r_t - zeta(u_t捕捉超过zeta的损失)、u_t >= 0、sum(w_i)=1、w_i in [0,0.4]、w^T*mean_r >= target_return(收益约束)。使用scipy.optimize.linprog(HiGHS算法)求解。与标准Mean-Variance模型(scipy.optimize.minimize, SLSQP)和等权策略进行三方对比。使用8个行业ETF，120日回看窗口、20日调仓频率。重点比较三种策略在尾部风险(VaR_95%和CVaR_95%)上的差异。`,
@@ -930,6 +943,7 @@ export const PAPER_CONTENT_BATCH3: Record<string, PaperDeepContent> = {
   // 45. ML Predictions + Markowitz (Han 2023)
   // ============================================================
   'mv-ml-predictions-han2023': {
+    modelId: 'mv-ml-predictions-han2023',
     researchBackground: `经典Markowitz模型的最大软肋是期望收益率mu的估计——使用历史均值作为mu的估计器噪声极大("estimation error maximizer")。微小的mu估计误差经过优化器放大后可能导致极端的权重配置(全仓单一资产)。Han (2023)提出使用LightGBM机器学习模型预测各ETF的未来收益率，替代历史均值作为Markowitz模型的mu输入。ML预测能捕捉因子与收益率之间的非线性关系，且基于多维因子信息(而非仅有历史均值)，理论上提供更准确的mu估计。论文报告年化收益59.4%、夏普比率2.28。`,
 
     algorithmIntroduction: `ML+Markowitz框架分为三个层次。第一层是特征工程：为每个行业ETF构建20+维因子——4个动量因子(5/10/20/60日)、3个波动率因子(5/10/20日)、RSI_14、MACD柱状图、布林带宽度和%B、3个均线偏离(5/10/20日)、2个成交量比率(5日和20日相对均量)。标签为未来5日收益率(shift(-5))。第二层是LightGBM预测：对每个ETF独立训练LightGBM回归模型(num_leaves=31, learning_rate=0.05, feature_fraction=0.8, bagging_fraction=0.8, bagging_freq=5, num_boost_round=100)。使用截至当前调仓日的全部历史数据训练(严格因果)。预测的5日收益率乘以252/5年化后作为mu_i输入Markowitz。第三层是Markowitz优化：以ML预测的年化收益mu_ml和回看窗口的年化样本协方差Sigma为输入，最大化效用w^T*mu_ml - (lambda/2)*w^T*Sigma*w(lambda=2.5)，约束sum(w)=1、w_i in [0,0.4]。同时运行传统Markowitz(使用历史均值)作为对照。150日训练窗口、20日调仓频率。每次调仓需为N个ETF分别训练一个LightGBM模型。`,
@@ -995,6 +1009,7 @@ export const PAPER_CONTENT_BATCH3: Record<string, PaperDeepContent> = {
   // 46. Scoring Screening (Li 2022)
   // ============================================================
   'scoring-screening-li2022': {
+    modelId: 'scoring-screening-li2022',
     researchBackground: `基金经理的实际选股过程通常不是一步到位的优化，而是多阶段的层层筛选——先通过粗筛剔除不符合条件的股票，再通过细筛排名选出最优标的。Li (2022)研究了如何用量化方法模拟这一多阶段筛选流程：动量评分(确认趋势强度) -> 波动率过滤(控制风险) -> 综合排名(多因子加权选优)。这种"漏斗式"方法的优势在于逻辑透明、可解释性强，且每个阶段的筛选标准可独立调整和回测。该方法是纯规则驱动的(无机器学习)，适合对模型可解释性有较高要求的投资场景。`,
 
     algorithmIntroduction: `三阶段漏斗筛选模型从20只A股蓝筹中逐步筛选出Top-5组合。Stage 1动量评分：计算多周期加权动量得分S_mom = 0.3*rank(r_20d) + 0.3*rank(r_60d) + 0.4*rank(r_120d)，保留得分高于中位数的前50%(约10只)。长周期(120日)权重更高，强调中长期趋势的持续性。Stage 2波动率过滤：计算通过Stage 1的股票的20日年化波动率sigma_i = std(r)*sqrt(244)，剔除波动率处于75%分位以上的25%(约保留7-8只)。这一步控制了组合的尾部风险。Stage 3综合排名：计算综合得分S_total = 0.5*S_mom + 0.3*(1-rank(sigma)) + 0.2*rank(turnover)，选择得分最高的Top-5等权配置。动量(正向)、低波动率(负向)和换手率(正向，流动性)三个维度的加权反映了"趋势强、波动小、流动性好"的选股偏好。120日回看窗口、20日月度调仓。`,
@@ -1064,6 +1079,7 @@ export const PAPER_CONTENT_BATCH3: Record<string, PaperDeepContent> = {
   // 47. Monte Carlo + K-Means (Wang 2022)
   // ============================================================
   'monte-carlo-kmeans-wang2022': {
+    modelId: 'monte-carlo-kmeans-wang2022',
     researchBackground: `Markowitz优化的解析方法(如SLSQP)在处理非凸约束或复杂目标函数时可能陷入局部最优。Wang (2022)提出了一种组合优化的启发式方法：先用K-Means聚类将资产按收益-风险特征分组(降维+理解资产间相似性)，再用Monte Carlo随机模拟大量组合权重，通过筛选Pareto最优前沿定位最佳组合。这种方法的优势在于：不需要协方差矩阵可逆、对约束条件灵活(可处理任意约束)、易于并行化和可视化。缺点是采样效率低——高维空间需要大量样本才能充分覆盖权重空间。`,
 
     algorithmIntroduction: `K-Means+Monte Carlo框架分为四步。第一步K-Means聚类：以(年化收益率,年化波动率)为特征向量，使用StandardScaler标准化后将N=8个行业ETF聚为K=3类。聚类直观展示了资产在收益-风险空间中的分布——同类资产具有相似的风险收益特征。第二步Monte Carlo随机组合生成：使用Dirichlet分布生成M=3000个随机权重组合(确保权重和为1且非负)。对每个组合计算年化收益R_p = w^T*mu*252和年化风险sigma_p = sqrt(w^T*Sigma*w*252)。第三步有效前沿提取：将风险区间等分为50个bin，在每个bin内选择收益最高的组合，这些组合近似构成有效前沿。第四步最优组合选择：在有效前沿上选择最大夏普比率的组合w* = argmax (R_p - r_f) / sigma_p。120日回看窗口、20日调仓频率。与等权策略对比。`,
@@ -1129,6 +1145,7 @@ export const PAPER_CONTENT_BATCH3: Record<string, PaperDeepContent> = {
   // 48. Higher Moments (Liu 2020)
   // ============================================================
   'higher-moments-liu2020': {
+    modelId: 'higher-moments-liu2020',
     researchBackground: `传统Markowitz模型仅考虑收益率分布的前两阶矩(均值和方差)，隐含正态分布假设。但金融资产收益率普遍存在负偏度(下跌时跌幅更大)和超额峰度(极端事件比正态分布预测的更频繁)——这些高阶矩信息对风险管理至关重要。Liu (2020)研究了将传统二阶矩扩展至四阶矩(均值-方差-偏度-峰度)的多目标组合优化。投资者偏好正偏度(右尾更厚=大涨概率更高)和低峰度(极端事件更少)。在A股市场这种非正态特征显著的市场中，引入高阶矩信息有望提供更全面的风险-收益权衡。`,
 
     algorithmIntroduction: `四阶矩(MVSK)组合优化将传统的二维(均值-方差)扩展为四维(均值-方差-偏度-峰度)目标。投资者效用函数定义为：U(w) = mu_p - (lambda_2/2)*sigma_p^2 + lambda_3*skew_p - lambda_4*kurt_p。其中lambda_2=2.5(风险厌恶)、lambda_3=1.0(偏度偏好)、lambda_4=0.5(峰度厌恶)。组合偏度通过scipy.stats.skew计算，超额峰度通过scipy.stats.kurtosis(fisher=True)计算(正态分布下为0)。优化使用scipy.optimize.minimize(SLSQP)，约束sum(w)=1、w_i in [0,0.4]。由于目标函数非凸(含三阶和四阶矩)，使用5个随机起点的多起点优化避免局部最优。同时运行标准二阶矩MV优化和等权策略作为对照。使用8个行业ETF，120日回看窗口、20日调仓频率。重点对比三种策略的样本外偏度和峰度特征。`,

@@ -115,7 +115,7 @@ export default function MetricsRadar({ metrics, color = '#3B82F6', hasRealData =
         {/* Labels */}
         {axes.map((a, i) => {
           const angleDeg = (a.angle * 180) / Math.PI
-          let anchor: string = 'middle'
+          let anchor: 'start' | 'middle' | 'end' = 'middle'
           if (angleDeg > -80 && angleDeg < 80) anchor = 'start'
           else if (angleDeg > 100 || angleDeg < -100) anchor = 'end'
           return (
